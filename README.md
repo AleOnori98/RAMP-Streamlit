@@ -126,15 +126,10 @@ These files can be directly used in MicroGridsPy and other energy modelling fram
 
 ## Installation
 
-### **A) Using pip + requirements.txt**
+### **Using Conda + environment.yaml**
+This project provides a reproducible Conda environment specification.
+It ensures that all Streamlit, pandas, numpy, and RAMP-related dependencies are installed with the correct versions.
 
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-### **B) Using Conda + environment.yaml**
 ```bash
 conda env create -f environment.yaml
 conda activate ramp_app
@@ -143,14 +138,18 @@ conda activate ramp_app
 ---
 
 ## Running the Streamlit App
-From the project root:
+From the project’s root directory, simply run:
+
 ```bash
 streamlit run app.py
 ```
-The app will open automatically in the browser, or you can visit:
+Streamlit will automatically start a local development server.
+If the browser does not open automatically, navigate to:
+
 ```bash
 http://localhost:8501
 ```
+The UI guides you step-by-step, so no manual scripting is required. Enjoy!:)
 
 ## 👥 Contacts
 
