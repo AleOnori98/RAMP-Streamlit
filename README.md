@@ -2,16 +2,15 @@
 *A lightweight, interactive workflow for generating high-resolution load demand profiles using the RAMP framework.*
 
 <p align="center">
-  <img src="config/assets/ramp.png" width="320" alt="RAMP for Bottom-Up Load Demand Simulation">
+  <img src="config/assets/ramp.png" width="650" alt="RAMP for Bottom-Up Load Demand Simulation">
 </p>
 
 The **RAMP Demand Simulator** is a fully interactive Streamlit application designed to simplify the entire workflow of preparing inputs, generating daily stochastic demand profiles, assembling a synthetic “full year,” and visualizing the resulting minute-resolution curves.  
 Instead of manually preparing multiple spreadsheets and calling Python scripts, this interface guides the user through a clean, intuitive, and reproducible process. With RAMP’s stochastic engine under the hood and Streamlit providing an intuitive UI, the tool enables fully transparent and modular bottom-up load simulation at **one-minute resolution**.
 
-
 ---
 
-# **Features**
+## **Features**
 
 The application provides an end-to-end modelling pipeline:
 
@@ -47,7 +46,7 @@ A synthetic year is assembled day-by-day by selecting a random day from the appr
 - Automatic support for aggregated vs per-category curves
 
 <p align="center">
-  <img src="docs/images/workflow_diagram.png" width="650" alt="Workflow Diagram">
+  <img src="config/assets/daily_plot_example.png" width="650" alt="Workflow Diagram">
 </p>
 
 These plots provide an immediate, intuitive understanding of behavioural variability, peak periods, and seasonal patterns.
@@ -57,7 +56,7 @@ All outputs are automatically generated in tidy CSV files, making integration wi
 
 ---
 
-# **📁 Repository Structure**
+## 📁 Repository Structure
 ```bash
 
 project/
@@ -88,7 +87,7 @@ project/
 
 ---
 
-# **Inputs**
+## Inputs
 
 ### **RAMP Input Excel**
 A structured spreadsheet containing:
@@ -110,7 +109,7 @@ Automatically saved to:
 
 ---
 
-# **Outputs**
+## Outputs
 
 Outputs are produced in **CSV format** for readability and compatibility.
 
@@ -128,9 +127,9 @@ Shape: **365 × 24**
 
 These files can be directly used in MicroGridsPy and other energy modelling frameworks.
 
-# **⚙ Installation**
+## Installation
 
-## **A) Using pip + requirements.txt**
+### **A) Using pip + requirements.txt**
 
 ```bash
 python -m venv venv
@@ -138,7 +137,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## **B) Using Conda + environment.yaml**
+### **B) Using Conda + environment.yaml**
 ```bash
 conda env create -f environment.yaml
 conda activate ramp_app
@@ -146,7 +145,7 @@ conda activate ramp_app
 
 ---
 
-# **🚀 Running the Streamlit App**
+## Running the Streamlit App
 From the project root:
 ```bash
 streamlit run app.py
@@ -156,7 +155,7 @@ The app will open automatically in the browser, or you can visit:
 http://localhost:8501
 ```
 
-# 👥 Contacts"
+## 👥 Contacts
 
 **Alessandro Onori**  
 📧 [alessandro.onori@polimi.it](mailto:{alessandro.onori@polimi.it})  
