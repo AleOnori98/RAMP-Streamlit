@@ -2,7 +2,7 @@
 *A lightweight, interactive workflow for generating high-resolution load demand profiles using the RAMP framework.*
 
 <p align="center">
-  <img src="config/assets/ramp.png" width="650" alt="RAMP for Bottom-Up Load Demand Simulation">
+  <img src="config/assets/ramp.png" width="800" alt="RAMP for Bottom-Up Load Demand Simulation">
 </p>
 
 The **RAMP Demand Simulator** is a fully interactive Streamlit application designed to simplify the entire workflow of preparing inputs, generating daily stochastic demand profiles, assembling a synthetic “full year,” and visualizing the resulting minute-resolution curves.  
@@ -46,7 +46,7 @@ A synthetic year is assembled day-by-day by selecting a random day from the appr
 - Automatic support for aggregated vs per-category curves
 
 <p align="center">
-  <img src="config/assets/daily_plot_example.png" width="650" alt="Workflow Diagram">
+  <img src="config/assets/daily_plot_example.png" width="800" alt="Workflow Diagram">
 </p>
 
 These plots provide an immediate, intuitive understanding of behavioural variability, peak periods, and seasonal patterns.
@@ -94,18 +94,15 @@ A structured spreadsheet containing:
 - Category name  
 - Appliance attributes  
 - Usage windows and probabilities  
-- Stochastic behaviour parameters  
+- Stochastic behaviour parameters
+
+  <p align="center">
+  <img src="config/assets/ramp_template.png" width="800" alt="Workflow Diagram">
+</p>
 
 A ready-to-use example can be found in:  
 **examples/RAMP Excel Inputs Example.xlsx**
 
-### **Year Structure Configuration**
-Automatically saved to:
-**inputs/year_structure.yaml**
-
-### **Archetype Metadata**
-Automatically saved to:
-**inputs/archetype_configs.json**
 
 ---
 
