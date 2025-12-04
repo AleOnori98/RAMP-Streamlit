@@ -1,4 +1,4 @@
-# **RAMP Demand Simulator – Streamlit Application**
+# **RAMP Demand Assessment – Streamlit Application**
 *A lightweight, interactive workflow for generating high-resolution load demand profiles using the RAMP framework.*
 
 <p align="center">
@@ -157,10 +157,6 @@ http://localhost:8501
 **Alessandro Onori**  
 📧 [alessandro.onori@polimi.it](mailto:{alessandro.onori@polimi.it})  
 🛠️ *Core backend model, modeling advancements, and Streamlit UI development*  
-
-Technical Advisors
-- Riccardo Mereu, Politecnico di Milano  
-- Emanuela Colombo, Politecnico di Milano
 
 
 ## License
