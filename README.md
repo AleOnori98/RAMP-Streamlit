@@ -5,9 +5,7 @@
   <img src="config/assets/ramp.png" width="500" alt="RAMP for Bottom-Up Load Demand Simulation">
 </p>
 
-The **RAMP Demand Simulator** is a fully interactive Streamlit application designed to simplify the entire workflow of preparing inputs, generating daily stochastic demand profiles, assembling a synthetic “full year,” and visualizing the resulting minute-resolution curves.  
-Instead of manually preparing multiple spreadsheets and calling Python scripts, this interface guides the user through a clean, intuitive, and reproducible process. With RAMP’s stochastic engine under the hood and Streamlit providing an intuitive UI, the tool enables fully transparent and modular bottom-up load simulation at **one-minute resolution**.
-
+Interactive **Streamlit application** that exposes the **full bottom-up, appliance-level load modelling** capabilities of the RAMP framework through an **intuitive user interface**. The tool manages the complete workflow: uploading simplified appliance inputs, expanding them into full RAMP-compatible configurations, generating stochastic daily profiles, assembling a synthetic 365-day year, and visualizing minute-resolution demand curves. This removes the need for manual spreadsheet preparation and scripting, enabling transparent, reproducible, and modular load demand simulation suitable for downstream energy system planning and techno-economic analysis.
 
 ---
 
