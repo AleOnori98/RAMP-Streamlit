@@ -6,6 +6,7 @@ from typing import List, Tuple
 import importlib
 from pathlib import Path
 from dataclasses import dataclass
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -50,6 +51,17 @@ def _load_template_df() -> pd.DataFrame:
             "Place 'ramp_template.xlsx' in /config."
         )
     return pd.read_excel(TEMPLATE_FILE)
+
+def clear_directory(path: Path) -> None:
+    """Remove all files and subfolders inside `path` (but keep the folder)."""
+    if not path.exists():
+        return
+    for item in path.iterdir():
+        if item.is_file():
+            item.unlink(missing_ok=True)
+        elif item.is_dir():
+            shutil.rmtree(item, ignore_errors=True)
+
 
 
 # ---------------------------------------------------------------------
@@ -294,21 +306,42 @@ def build_full_input_for_archetype(file_like, arch_id: str) -> pd.DataFrame:
 # Year structure + archetype configs IO
 # ---------------------------------------------------------------------
 def save_year_structure(config: dict, as_yaml: bool = False) -> Path:
+    """
+    Persist year structure configuration.
+
+    YAML is treated as the authoritative format; JSON is written
+    as a mirror for backward compatibility / debugging.
+    """
+    # Always write JSON mirror
+    YEAR_STRUCTURE_JSON.write_text(
+        json.dumps(config, indent=2),
+        encoding="utf-8",
+    )
+
     if as_yaml:
         import yaml
-        YEAR_STRUCTURE_YAML.write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
+        YEAR_STRUCTURE_YAML.write_text(
+            yaml.safe_dump(config, sort_keys=False),
+            encoding="utf-8",
+        )
         return YEAR_STRUCTURE_YAML
-    YEAR_STRUCTURE_JSON.write_text(json.dumps(config, indent=2), encoding="utf-8")
+
     return YEAR_STRUCTURE_JSON
 
-
 def load_year_structure() -> dict:
-    if YEAR_STRUCTURE_JSON.exists():
-        return json.loads(YEAR_STRUCTURE_JSON.read_text(encoding="utf-8"))
+    """
+    Load year structure. Prefer YAML (if present), otherwise fall back to JSON.
+    """
     if YEAR_STRUCTURE_YAML.exists():
         import yaml
-        return yaml.safe_load(YEAR_STRUCTURE_YAML.read_text(encoding="utf-8")) or {}
+        txt = YEAR_STRUCTURE_YAML.read_text(encoding="utf-8").strip()
+        return yaml.safe_load(txt) or {}
+
+    if YEAR_STRUCTURE_JSON.exists():
+        return json.loads(YEAR_STRUCTURE_JSON.read_text(encoding="utf-8"))
+
     return {}
+
 
 
 def save_archetype_configs(configs: dict) -> Path:

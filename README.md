@@ -1,16 +1,17 @@
-# **RAMP Demand Assessment – Streamlit Application**
+# **RAMP Demand Simulator – Streamlit Application**
 *A lightweight, interactive workflow for generating high-resolution load demand profiles using the RAMP framework.*
 
 <p align="center">
-  <img src="config/assets/ramp.png" width="800" alt="RAMP for Bottom-Up Load Demand Simulation">
+  <img src="config/assets/ramp.png" width="320" alt="RAMP for Bottom-Up Load Demand Simulation">
 </p>
 
 The **RAMP Demand Simulator** is a fully interactive Streamlit application designed to simplify the entire workflow of preparing inputs, generating daily stochastic demand profiles, assembling a synthetic “full year,” and visualizing the resulting minute-resolution curves.  
 Instead of manually preparing multiple spreadsheets and calling Python scripts, this interface guides the user through a clean, intuitive, and reproducible process. With RAMP’s stochastic engine under the hood and Streamlit providing an intuitive UI, the tool enables fully transparent and modular bottom-up load simulation at **one-minute resolution**.
 
+
 ---
 
-## **Features**
+# **Features**
 
 The application provides an end-to-end modelling pipeline:
 
@@ -46,7 +47,7 @@ A synthetic year is assembled day-by-day by selecting a random day from the appr
 - Automatic support for aggregated vs per-category curves
 
 <p align="center">
-  <img src="config/assets/daily_plot_example.png" width="800" alt="Workflow Diagram">
+  <img src="docs/images/workflow_diagram.png" width="650" alt="Workflow Diagram">
 </p>
 
 These plots provide an immediate, intuitive understanding of behavioural variability, peak periods, and seasonal patterns.
@@ -56,7 +57,7 @@ All outputs are automatically generated in tidy CSV files, making integration wi
 
 ---
 
-## 📁 Repository Structure
+# **📁 Repository Structure**
 ```bash
 
 project/
@@ -87,26 +88,29 @@ project/
 
 ---
 
-## Inputs
+# **Inputs**
 
 ### **RAMP Input Excel**
 A structured spreadsheet containing:
 - Category name  
 - Appliance attributes  
 - Usage windows and probabilities  
-- Stochastic behaviour parameters
-
-  <p align="center">
-  <img src="config/assets/ramp_template.png" width="800" alt="Workflow Diagram">
-</p>
+- Stochastic behaviour parameters  
 
 A ready-to-use example can be found in:  
 **examples/RAMP Excel Inputs Example.xlsx**
 
+### **Year Structure Configuration**
+Automatically saved to:
+**inputs/year_structure.yaml**
+
+### **Archetype Metadata**
+Automatically saved to:
+**inputs/archetype_configs.json**
 
 ---
 
-## Outputs
+# **Outputs**
 
 Outputs are produced in **CSV format** for readability and compatibility.
 
@@ -124,12 +128,17 @@ Shape: **365 × 24**
 
 These files can be directly used in MicroGridsPy and other energy modelling frameworks.
 
-## Installation
+# **⚙ Installation**
 
-### **Using Conda + environment.yaml**
-This project provides a reproducible Conda environment specification.
-It ensures that all Streamlit, pandas, numpy, and RAMP-related dependencies are installed with the correct versions.
+## **A) Using pip + requirements.txt**
 
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+## **B) Using Conda + environment.yaml**
 ```bash
 conda env create -f environment.yaml
 conda activate ramp_app
@@ -137,25 +146,25 @@ conda activate ramp_app
 
 ---
 
-## Running the Streamlit App
-From the project’s root directory, simply run:
-
+# **🚀 Running the Streamlit App**
+From the project root:
 ```bash
 streamlit run app.py
 ```
-Streamlit will automatically start a local development server.
-If the browser does not open automatically, navigate to:
-
+The app will open automatically in the browser, or you can visit:
 ```bash
 http://localhost:8501
 ```
-The UI guides you step-by-step, so no manual scripting is required. Enjoy!:)
 
-## 👥 Contacts
+# 👥 Contacts"
 
 **Alessandro Onori**  
 📧 [alessandro.onori@polimi.it](mailto:{alessandro.onori@polimi.it})  
 🛠️ *Core backend model, modeling advancements, and Streamlit UI development*  
+
+Technical Advisors
+- Riccardo Mereu, Politecnico di Milano  
+- Emanuela Colombo, Politecnico di Milano
 
 
 ## License

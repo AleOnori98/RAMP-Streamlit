@@ -40,16 +40,20 @@ def build_multi_archetypes_from_uploads(rows: Dict[str, dict]) -> Dict[str, dict
       arch_id: {
         "season": str, "week_class": Optional[str], "label": str,
         "num_days": int,
-        "file_like": BytesIO  # optional; if missing we skip build but keep metadata
+        "file_like": BytesIO  # optional; if missing we skip file build but keep metadata
       }, ...
     }
-    Returns same dict plus "full_excel_path" for those built; also persists JSON.
+
+    The function is **authoritative**: the resulting archetype_configs.json
+    will contain ONLY the archetypes passed in `rows`.
     """
     built_configs: Dict[str, dict] = {}
+
     for arch_id, meta in rows.items():
         buf = meta.get("file_like")
+
         if buf is None:
-            # not uploaded -> skip file build but keep metadata
+            # Not uploaded -> skip file build but keep metadata
             built_configs[arch_id] = {
                 "season": meta.get("season"),
                 "week_class": meta.get("week_class"),
@@ -69,6 +73,10 @@ def build_multi_archetypes_from_uploads(rows: Dict[str, dict]) -> Dict[str, dict
             "full_excel_path": str(full_path),
         }
 
+    if not built_configs:
+        raise RuntimeError("No archetype configuration to save. Did you define any archetype?")
+
+    # This overwrites the previous file: last configuration is always the canonical one.
     save_archetype_configs(built_configs)
     return built_configs
 

@@ -4,10 +4,13 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import zipfile
+
 
 from typing import List, Dict
 from config.path_manager import PM
 from core.utils import (
+    clear_directory,
     default_month_partition,
     save_year_structure,
     derive_archetypes,
@@ -50,10 +53,44 @@ st.markdown("""
 
     """)
 
+# ---------------------------------------------------------------------------
+# Project files & management
+# ---------------------------------------------------------------------------
 st.markdown("---")
+st.subheader("Project files & management")
 
-st.subheader("Configure Seasonal & Weekly Structure")
+st.markdown(
+    """
+    This app does **not** manage projects or versions for you.  
+    - **Inputs** (full RAMP Excel files, per–archetype inputs) are written under
+      the `inputs/` folder of the app.
+    - **Outputs** (per–user profiles and aggregated profiles) are written under
+      the `outputs/` folder.
+    
+    It is recommended to:
+    - keep your own copies of the simplified Excel inputs you use,
+    - use the **Download results** section at the bottom of the page to export
+      the generated profiles (ZIP + hourly aggregate) and archive them per
+      project / scenario outside this app.
+    """
+)
 
+if st.button("Clear inputs folder", type="primary"):
+    try:
+        clear_directory(PM.inputs_dir)
+        st.success("Inputs folder cleared (all generated full RAMP inputs and archetype files removed).")
+    except Exception as e:
+        st.error(f"Could not clear inputs folder: {e}")
+
+if st.button("Clear outputs folder", type="primary"):
+    try:
+        clear_directory(PM.outputs_dir)
+        st.success("Outputs folder cleared (all generated profiles removed).")
+    except Exception as e:
+        st.error(f"Could not clear outputs folder: {e}")
+
+st.markdown("---")
+st.subheader("1. Configure Seasonal & Weekly Structure")
 st.markdown(
     """
     This section configures **how the year is structured** before running RAMP.
@@ -65,10 +102,6 @@ st.markdown(
     **Weekly structure**
     - Optionally **differentiate within the week** (e.g., *Weekday* vs *Weekend*).
     - For each class, set a **name** and **days per week** (sum ideally **7**; otherwise used as relative frequencies).
-
-    **How `num_days` is used**: For each day archetype (**season × week-class**), `num_days` is how many **independent daily profiles** are generated.
-    With **1 season and no weekly differentiation**, `num_days` ≈ “how many days you simulate” (e.g., 365) while
-    with multiple archetypes, each archetype gets its own `num_days` and therefore the full year is assembled from these pools.
     """
 )
 
@@ -97,28 +130,67 @@ if "simulation_done" not in st.session_state:
 # Seasons editor
 # -----------------------------------------------------------------------------
 with st.container():
+    # Previous number of seasons (for change detection)
+    prev_n = st.session_state.get("prev_n_seasons", int(ys["n_seasons"]))
+
     n_seasons = st.number_input(
         "Number of seasons",
-        min_value=1, max_value=4,
-        value=int(ys["n_seasons"]), step=1
+        min_value=1,
+        max_value=4,
+        value=int(ys["n_seasons"]),
+        step=1,
     )
-    ys["n_seasons"] = int(n_seasons)
-    st.session_state.n_seasons = ys["n_seasons"]
+    n_seasons = int(n_seasons)
+    ys["n_seasons"] = n_seasons
+    st.session_state.n_seasons = n_seasons
 
-    # Resize seasons list while preserving existing names/months
-    if n_seasons > len(ys["seasons"]):
-        for i in range(len(ys["seasons"]), n_seasons):
-            ys["seasons"].append({"name": f"Season {i+1}", "months": []})
-    elif n_seasons < len(ys["seasons"]):
-        ys["seasons"] = ys["seasons"][:n_seasons]
+    # If the number of seasons changed, re-initialise with clean defaults
+    if n_seasons != prev_n:
+        default_parts = default_month_partition(n_seasons)
 
+        if n_seasons == 1:
+            # Single season: fixed label "Year" and full year
+            ys["seasons"] = [{
+                "name": "Year",
+                "months": list(range(1, 13)),
+            }]
+        else:
+            # Multi-season: default labels "Season 1", "Season 2", ...
+            # and evenly split months from default_month_partition
+            ys["seasons"] = [
+                {
+                    "name": f"Season {i+1}",
+                    "months": default_parts[i],
+                }
+                for i in range(n_seasons)
+            ]
+    else:
+        # Same number of seasons as before → preserve existing structure,
+        # only resize list if needed (e.g. app reload with missing entries).
+        if n_seasons > len(ys["seasons"]):
+            for i in range(len(ys["seasons"]), n_seasons):
+                ys["seasons"].append({
+                    "name": f"Season {i+1}",
+                    "months": [],
+                })
+        elif n_seasons < len(ys["seasons"]):
+            ys["seasons"] = ys["seasons"][:n_seasons]
+
+    # Store for next run (needed for change detection above)
+    st.session_state.prev_n_seasons = n_seasons
+
+    # Default month partition (used only as fallback inside widgets)
     default_parts = default_month_partition(n_seasons)
 
     if n_seasons == 1:
+        # Always enforce full-year + label "Year" for single-season mode
         ys["seasons"][0] = {
             "name": "Year",
-            "months": list(range(1, 13))  # always full year
+            "months": list(range(1, 13)),
         }
+        st.session_state.seasons = ys["seasons"]
+
+        st.success("Single season selected: all months (1–12) are assigned to this season.")
     else:
         # Multi-season UX: show month allocation widgets
         for i in range(n_seasons):
@@ -126,22 +198,27 @@ with st.container():
                 s_name = st.text_input(
                     "Name",
                     value=ys["seasons"][i]["name"],
-                    key=f"s_name_{i}"
+                    key=f"s_name_{i}",
                 )
+                # If no months are defined yet, fall back to the even split
                 current = ys["seasons"][i]["months"] or default_parts[i]
                 months = st.multiselect(
                     "Months (1–12)",
                     options=list(range(1, 13)),
                     default=current,
-                    format_func=lambda m: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][m-1],
+                    format_func=lambda m: [
+                        "Jan","Feb","Mar","Apr","May","Jun",
+                        "Jul","Aug","Sep","Oct","Nov","Dec"
+                    ][m-1],
                     key=f"s_months_{i}",
                 )
                 ys["seasons"][i] = {
                     "name": s_name.strip() or f"Season {i+1}",
-                    "months": sorted(months)
+                    "months": sorted(months),
                 }
 
-    st.session_state.seasons = ys["seasons"]
+        st.session_state.seasons = ys["seasons"]
+
 
 # -----------------------------------------------------------------------------
 # Weekly structure editor
@@ -249,7 +326,8 @@ if save_clicked:
 # Single-archetype detection
 is_single_archetype = (ys["n_seasons"] == 1 and not ys["use_week_classes"])
 
-st.subheader("Upload RAMP Inputs File")
+st.markdown("---")
+st.subheader("2. Upload RAMP Inputs File")
 st.markdown(
     """
     The uploaded file should follow the standard *template format*: the **first column contains the user category**, and the following columns contain
@@ -280,7 +358,30 @@ if st.session_state.inputs_updated:
                 st.error(f"Build failed: {e}")
     else:
         st.caption("Multi-archetype detected (multiple seasons and/or weekly differentiation).")
-        st.markdown("**Upload the RAMP Excel for each archetype.**")
+        st.markdown(
+            """
+            For every archetype (**Season × Week-class** or just Season), RAMP generates
+            `num_days` **independent synthetic daily profiles** at minute resolution.
+            In **multi-archetype mode**, the final **365-day year** is built by walking
+            through a calendar year. For each calendar day the app:
+                1. Determines its season and, if enabled, its week-class.
+                2. Selects the corresponding archetype.
+                3. Randomly picks **one** day from that archetype’s `num_days` pool
+                (for each user category) and uses it as the load shape for that date.
+
+            **Practical guidance**
+
+            - With **1 season and no weekly differentiation** (single-archetype mode),
+            `num_days` is the number of stochastic days you ask RAMP to generate;
+            these are then tiled or downsampled internally to obtain a full 365-day year.
+            - With **multiple archetypes**, each archetype has its own `num_days`
+            (its own pool of synthetic days). The yearly profile is assembled by
+            sampling from these pools according to the season/week-class calendar.
+            """
+        )
+
+        st.markdown("**For each archetype, upload the RAMP Excel file and set `num_days`.**")
+
         archetypes = derive_archetypes(ys)  # [{"season","week_class","label","arch_id"}, ...]
         if not archetypes:
             st.info("No archetypes generated from the current year structure. "
@@ -289,8 +390,11 @@ if st.session_state.inputs_updated:
             st.caption("One row per archetype (Season × Week-class or just Season). "
                     "Choose `num_days` and upload the simplified Excel for each row you want to build.")
 
-            # Keep per-row states in session
+            # --- Keep per-row states in session, but ONLY for active archetypes ---
+            active_ids = {a["arch_id"] for a in archetypes}
+
             if "arch_rows" not in st.session_state:
+                # First time: create rows only for current archetypes
                 st.session_state.arch_rows = {
                     a["arch_id"]: {
                         "season": a["season"],
@@ -298,19 +402,30 @@ if st.session_state.inputs_updated:
                         "label": a["label"],
                         "num_days": 60,
                         "file_like": None,
-                    } for a in archetypes
+                    }
+                    for a in archetypes
                 }
             else:
-                # ensure rows exist for newly derived archetypes (if user changed config)
+                # 1) Drop rows that no longer correspond to any active archetype
+                existing_rows = st.session_state.arch_rows
+                pruned_rows = {
+                    arch_id: meta
+                    for arch_id, meta in existing_rows.items()
+                    if arch_id in active_ids
+                }
+
+                # 2) Add rows for newly created archetypes (if user changed config)
                 for a in archetypes:
-                    if a["arch_id"] not in st.session_state.arch_rows:
-                        st.session_state.arch_rows[a["arch_id"]] = {
+                    if a["arch_id"] not in pruned_rows:
+                        pruned_rows[a["arch_id"]] = {
                             "season": a["season"],
                             "week_class": a["week_class"],
                             "label": a["label"],
                             "num_days": 60,
                             "file_like": None,
                         }
+
+                st.session_state.arch_rows = pruned_rows
 
             rows = st.session_state.arch_rows
 
@@ -343,10 +458,13 @@ if st.session_state.inputs_updated:
                 submit = st.form_submit_button("Build inputs for selected archetypes")
 
             if submit:
-                # Only pass the current rows (they include files and num_days)
-                built = build_multi_archetypes_from_uploads(rows)
+                # Filter rows to only active archetypes (extra safety)
+                rows_current = {a["arch_id"]: rows[a["arch_id"]] for a in archetypes}
 
-                # Show a compact status table
+                # Only pass the current rows (they include files and num_days)
+                built = build_multi_archetypes_from_uploads(rows_current)
+
+                # Show a compact status table for the LAST configuration
                 status_records = []
                 for arch_id, info in built.items():
                     status_records.append({
@@ -356,6 +474,7 @@ if st.session_state.inputs_updated:
                         "built": "yes" if "full_excel_path" in info else "no (missing upload)",
                         "full_excel_path": info.get("full_excel_path", ""),
                     })
+
                 st.success("Archetype configuration saved.")
                 st.dataframe(pd.DataFrame(status_records), use_container_width=True)
                 st.caption("Metadata also saved to `config/archetype_configs.json`.")
@@ -389,8 +508,6 @@ if st.session_state.inputs_built:
                     summary = run_single_archetype(excel_path, int(num_days))
                     st.success("Simulation completed (single-archetype).")
                     st.session_state.simulation_done = True
-                    st.download_button("Download aggregated CSV", data=open(summary["aggregated_csv"], "rb").read(),
-                                    file_name="profile_aggregated.csv", mime="text/csv")
                 except Exception as e:
                     st.error(f"Single-archetype run failed: {e}")
 
@@ -404,8 +521,6 @@ if st.session_state.inputs_built:
                     summary = run_multi_archetype()
                     st.success("Simulation completed (multi-archetype).")
                     st.session_state.simulation_done = True
-                    st.download_button("Download aggregated CSV", data=open(summary["aggregated_csv"], "rb").read(),
-                                    file_name="profile_aggregated.csv", mime="text/csv")
                 except Exception as e:
                     st.error(f"Multi-archetype run failed: {e}")
 else:
@@ -422,15 +537,19 @@ else:
     # Load from disk (works whether you just ran a sim or are reopening the app)
     users_list, aggregated_matrix = load_profiles_from_outputs()
 
-    # Build options: user names + Aggregated (if available)
+    # Build options: Aggregated first (if available), then user names
     names = [u.name for u in users_list]
-    if aggregated_matrix is not None:
-        names = names + ["Aggregated"]
+    aggregated_available = aggregated_matrix is not None
+    if aggregated_available:
+        names = ["Aggregated"] + names
 
     if not names:
         st.info("No profiles found yet. Run a simulation first.")
     else:
-        selected = st.selectbox("Select profile to visualize", names, index=0)
+        # Default to Aggregated if available, otherwise first user
+        default_index = 0
+        selected = st.selectbox("Select profile to visualize", names, index=default_index)
+
 
         # Build the 2D matrix (days x 1440)
         if selected == "Aggregated":
@@ -597,3 +716,53 @@ else:
     ax.grid(True, alpha=0.3)
     ax.legend()
     st.pyplot(fig)
+
+    # ------------------------------------------------------------------
+    # Downloads: aggregated minute profile, all outputs, hourly profile
+    # ------------------------------------------------------------------
+    st.markdown("---")
+    st.subheader("Download results")
+    st.markdown(
+        """
+        Export the demand profiles generated by RAMP for further analysis.
+        - The **aggregated minute profile (365 × 1440)** is the full high-resolution load curve.
+        - The **ZIP of all profiles** contains individual user-category profiles as well as aggregated.
+        - The **aggregated hourly profile (8760)** is recommended for energy system optimization, dispatch, and planning models.
+        """
+    )
+
+    # 1) Aggregated minute-resolution profile (365 × 1440)
+    agg_csv_path = PM.outputs_dir / "profile_aggregated.csv"
+    if agg_csv_path.exists():
+        with open(agg_csv_path, "rb") as f:
+            st.download_button(
+                "Download aggregated minute profile (365×1440)",
+                data=f.read(),
+                file_name="profile_aggregated.csv",
+                mime="text/csv",
+            )
+
+    # 2) All profiles in outputs/ as a ZIP (per-user + aggregated)
+    if PM.outputs_dir.exists():
+        zip_buf = io.BytesIO()
+        with zipfile.ZipFile(zip_buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for p in PM.outputs_dir.glob("*.csv"):
+                zf.write(p, arcname=p.name)
+        zip_buf.seek(0)
+        st.download_button(
+            "Download all profiles (outputs folder, ZIP)",
+            data=zip_buf,
+            file_name="ramp_outputs_profiles.zip",
+            mime="application/zip",
+        )
+
+    # 3) Aggregated hourly profile (8760 hours)
+    if out_path.exists():
+        with open(out_path, "rb") as f:
+            st.download_button(
+                "Download aggregated hourly profile (8760 hours)",
+                data=f.read(),
+                file_name="profile_aggregated_hourly.csv",
+                mime="text/csv",
+            )
+
