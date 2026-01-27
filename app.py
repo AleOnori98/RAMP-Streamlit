@@ -5,6 +5,36 @@ st.set_page_config(page_title="RAMP Demand Simulator", layout="wide")
 
 st.title("RAMP - Bottom-up Demand Simulation")
 st.subheader("About RAMP")
+<<<<<<< HEAD
+=======
+st.markdown(
+    """
+    [RAMP](https://rampdemand.org/) is an open-source software designed for the generation of **high-resolution multi-energy demand profiles** when only limited information about user behaviour is available.
+
+    """)
+
+st.image(PM.assets_dir / "ramp.png")
+
+st.markdown("""
+    It allows to:
+    - **Characterize users** (households, institutions, services)  
+    - Define **appliances** and their **operating windows**  
+    - Capture **stochastic user behaviour**  
+    - Generate **minute-by-minute load profiles** for each user category  
+            
+    This bottom-up approach yields finely detailed **energy usage time series** suitable for energy system simulations, techno-economic assessments, and demand-side studies.
+
+    📖 **Documentation:** [rampdemand.readthedocs.io › latest](https://rampdemand.readthedocs.io/en/latest/?badge=latest)  
+    💻 **GitHub Repository:** [github.com/RAMP-project/RAMP](https://github.com/RAMP-project/RAMP)
+
+    """)
+
+# ---------------------------------------------------------------------------
+# Project files & management
+# ---------------------------------------------------------------------------
+st.markdown("---")
+st.subheader("Project files & management")
+>>>>>>> 2e9a7ce77eea0589cf1e29480a09737a0b5d7b0e
 
 st.markdown(
     """
