@@ -124,8 +124,8 @@ http://localhost:8501
 📧 alessandro.onori@polimi.it  
 
 Technical Advisors  
-- Riccardo Mereu — Politecnico di Milano  
-- Emanuela Colombo — Politecnico di Milano
+- Riccardo Mereu - Politecnico di Milano  
+- Emanuela Colombo - Politecnico di Milano
 
 ---
 
