@@ -37,7 +37,7 @@ st.markdown(
 
     """)
 
-st.image(PM.assets_dir / "ramp.png", use_container_width=True)
+st.image(PM.assets_dir / "ramp.png")
 
 st.markdown("""
     It allows to:
