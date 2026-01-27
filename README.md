@@ -1,153 +1,134 @@
-# **RAMP Demand Simulator – Streamlit Application**
-*A lightweight, interactive workflow for generating high-resolution load demand profiles using the RAMP framework.*
+# **RAMP Load Demand Simulation – Streamlit Application**
 
 <p align="center">
   <img src="config/assets/ramp.png" width="500" alt="RAMP for Bottom-Up Load Demand Simulation">
 </p>
 
-Interactive **Streamlit application** that exposes the **full bottom-up, appliance-level load modelling** capabilities of the RAMP framework through an **intuitive user interface**. The tool manages the complete workflow: uploading simplified appliance inputs, expanding them into full RAMP-compatible configurations, generating stochastic daily profiles, assembling a synthetic 365-day year, and visualizing minute-resolution demand curves. This removes the need for manual spreadsheet preparation and scripting, enabling transparent, reproducible, and modular load demand simulation suitable for downstream energy system planning and techno-economic analysis.
+This is a **Streamlit-based** interface that makes the **bottom-up, appliance-level load demand modelling** capabilities of the RAMP framework accessible to a broader audience. RAMP generates realistic high-resolution electricity demand time series by simulating user behaviour, appliance operation, and stochastic variability at minute-scale resolution. Traditionally, this workflow requires detailed spreadsheets and Python scripting; here, the same pipeline is exposed through an interactive graphical interface.
+
+The simulator guides the user through defining a **temporal representation of the year**, assembling one or more **behavioural archetypes** (season × week-class), running the stochastic RAMP engine, and analysing the final synthetic 365-day demand profiles. Visualisation tools allow inspection of average daily shapes, variability envelopes, and specific instances of the load realisation, with export options suitable for energy planning, techno-economic analysis, feasibility studies, and optimisation models.
+
+In addition to the RAMP modelling workflow, the app includes a complementary pathway based on **Sub-Saharan Africa (SSA) demand archetypes**. This mode generates load profiles from a library of empirically derived user archetypes for households, schools, and health facilities, differentiated by climatic zone, socio-economic tier, and usage characteristics. This enables rapid scenario construction in data-scarce contexts where demographic or service information is available, but detailed appliance breakdowns are not.
+
+Both pathways share a common design objective: to provide transparent, reproducible, and well-structured demand profiles ready for downstream energy system modelling.
 
 ---
 
-## Features
+# **Application Structure**
 
-### Flexible year structure
-Users can configure the temporal structure of the year:
-- 1–4 **seasons**, with custom month assignments
-- Optional within-week differentiation (e.g. *Weekday vs Weekend* or custom week-classes)
-- Each combination *(Season × Week-class)* defines a **day archetype**
+The app consists of two main sections, selectable from the sidebar.
 
-### Input building from simplified Excel
-- Upload simplified RAMP inputs (one file per archetype or a single file for the whole year)
-- The app expands each into a **full RAMP-compatible Excel**
-- Archetype configurations are persisted on disk
+## **1. RAMP Simulation**
 
-### Two simulation modes
+This section exposes the full RAMP stochastic workflow to the user:
 
-**Single-archetype mode**
+### **Year Structure & Temporal Modelling**
+Users define how the year is partitioned in terms of:
+- **Seasons** (1–4), with arbitrary month assignments
+- Optional **within-week differentiation**, such as:
+  - *Weekday vs Weekend*
+  - Custom week-classes (up to 7)
 
-A single input represents the entire year. RAMP generates `num_days` independent daily profiles; the app tiles/downsamples them to form a 365×1440 matrix.
+Each *(season × week-class)* combination becomes a **day archetype**, i.e. a stochastic pool of daily profiles that represent typical usage patterns for that time period.
 
-**Multi-archetype mode**
+### **Input Preparation & Archetype Building**
+RAMP requires full appliance-level Excel inputs. The app allows users to upload **simplified RAMP Excel files**, one per archetype or a single file for the whole year. These are automatically expanded into full RAMP-compatible inputs and persisted for later reuse.
 
-Each archetype defines a stochastic pool of `num_days` synthetic days. The final 365-day year is built by:
-1. Walking through a calendar year
-2. Mapping each calendar date to its season and (optional) week-class
-3. Sampling one day from the corresponding archetype pool
+Two execution modes are supported:
 
-This captures intra-archetype variability (stochastic appliance behaviour) and inter-archetype diversity (seasonal/week patterns).
+- **Single-archetype mode**: one input governs the whole year; the simulator generates `num_days` synthetic daily profiles and tiles them into a full year.
+- **Multi-archetype mode**: each archetype has its own stochastic pool; the synthetic year is assembled by walking the calendar and sampling from the appropriate pool.
 
-### Visualization and inspection tools
-- Aggregated and per-category profiles
-- Daily clouds + min–max envelopes
-- Seasonal & weekly filters (if defined)
-- Specific day inspection
-- Hourly averages
-- Automatic profile export for energy modelling
+This captures:
+- stochastic appliance behaviour (intra-archetype variability)
+- seasonal & weekly patterns (inter-archetype diversity)
 
----
+### **Visualisation & Analysis**
+The output is a 365×1440 minute profile (or per-user equivalent). Users can:
+- visualise **aggregated** and **per-category** profiles
+- inspect **daily average curves** with min–max envelopes
+- explore **stochastic variability** via daily clouds
+- view **specific day instances**
+- export **hourly aggregates** for planning tools
 
-# **📁 Repository Structure**
-```bash
+## **2. SSA Load Archetypes**
 
-project/
-│
-├── app.py # Main Streamlit application
-├── config/
-│ ├── ramp_template.xlsx 
-│ ├── path_manager.py 
-│ └── assets/ # Logo and UI images
-│
-├── core/
-│ ├── utils.py # Helper utilities
-│ └── ramp_core.py # Orchestration of RAMP execution
-│
-├── inputs/
-│ ├── archetypes/ # Generated archetype Excel files
-│ ├── year_structure.yaml # Saved configuration
-│ └── ramp_input.xlsx # Full single-archetype input
-│
-├── outputs/
-│ ├── profile_*.csv # Per-category final daily profiles
-│ └── profile_aggregated.csv # Final aggregated (365×1440)
-│
-├── requirements.txt
-└── environment.yaml
+This section provides a fast scenario alternative based on empirically derived SSA archetypes. Rather than appliance inventories, users specify the **composition** of the settlement:
 
-```
+- households by **tier (1–5)**
+- **schools**
+- **hospitals** (5 types)
+
+Latitude selects one of the climatic zones (F1–F5), and a **cooling regime** reflects different household behaviours. The underlying library is based on:
+
+> *Archetypes of Rural Users in Sub-Saharan Africa for Load Demand Estimation*  
+> https://www.researchgate.net/publication/376763546_Archetypes_of_Rural_Users_in_Sub-Saharan_Africa_for_Load_Demand_Estimation
+
+The methodology aggregates hourly profiles derived from surveys, measurement campaigns, and behavioural modelling — suitable for electrification planning, mini-grid simulations, and access planning under SDG7 frameworks.
+
+This mode outputs:
+- a single **aggregated hourly profile**
+- **per-user category profiles** (households by tier, schools, hospitals)
+
+It prioritises accessibility, speed, and scenario logic for data-scarce environments.
 
 ---
 
-# **Inputs**
+# **Inputs & Outputs**
 
-### **RAMP Input Excel**
-A structured spreadsheet containing:
-- Category name  
-- Appliance attributes  
-- Usage windows and probabilities  
-- Stochastic behaviour parameters  
+### **Inputs**
+- Simplified RAMP Excel templates (appliance-level)
+- SSA archetype composition (tiers, schools, hospitals)
 
-A ready-to-use example can be found in:  
-**examples/RAMP Excel Inputs Example.xlsx**
+### **Outputs**
+All outputs are written in **CSV** format:
+
+| File | Description |
+|---|---|
+| `profile_aggregated.csv` | 365×1440 aggregated RAMP profile |
+| `profile_aggregated_hourly.csv` | 8760 hourly profile (RAMP) |
+| `ssa_aggregated_hourly.csv` | hourly aggregated SSA archetypes |
+| `profile_<user>.csv` | per-user appliance-level profiles (RAMP) |
+| `ssa_<user>.csv` | per-user archetype profiles (SSA) |
+
+These profiles are directly usable in techno-economic optimisation, dispatch models, power flow studies, and feasibility assessments.
 
 ---
 
-# **Outputs**
+# **Installation**
 
-Outputs are produced in **CSV format** for readability and compatibility.
-
-### **Per user category**
-`profile_<category>.csv`  
-Shape: **365 × 1440** (days × minutes)
-
-### **Aggregated daily demand**
-`profile_aggregated.csv`  
-Shape: **365 × 1440**
-
-### **Optional hourly file**
-`profile_aggregated_hourly.csv`  
-Shape: **365 × 24**
-
-These files can be directly used in MicroGridsPy and other energy modelling frameworks.
-
-# **⚙ Installation**
-
-## **A) Using pip + requirements.txt**
+### **Conda (recommended)**
 
 ```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+conda env create -f environment.yml
+conda activate ramp_streamlit
 ```
 
-## **B) Using Conda + environment.yaml**
-```bash
-conda env create -f environment.yaml
-conda activate ramp_app
-```
+### **Running**
 
----
-
-# **🚀 Running the Streamlit App**
-From the project root:
 ```bash
 streamlit run app.py
 ```
-The app will open automatically in the browser, or you can visit:
-```bash
+
+Then open:
+
+```
 http://localhost:8501
 ```
 
-# 👥 Contacts"
+---
+
+# **Contact**
 
 **Alessandro Onori**  
-📧 [alessandro.onori@polimi.it](mailto:{alessandro.onori@polimi.it})  
-🛠️ *Core backend model, modeling advancements, and Streamlit UI development*  
+📧 alessandro.onori@polimi.it  
 
-Technical Advisors
-- Riccardo Mereu, Politecnico di Milano  
-- Emanuela Colombo, Politecnico di Milano
+Technical Advisors  
+- Riccardo Mereu — Politecnico di Milano  
+- Emanuela Colombo — Politecnico di Milano
 
+---
 
-## License
-This is a free software licensed under the “European Union Public Licence" EUPL v1.1. It can be redistributed and/or modified under the terms of this license.
+# **License**
+
+European Union Public Licence (EUPL v1.1).
