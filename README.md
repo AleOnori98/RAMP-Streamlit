@@ -1,7 +1,7 @@
 # **RAMP Load Demand Simulation – Streamlit Application**
 
 <p align="center">
-  <img src="config/assets/ramp.png" width="500" alt="RAMP for Bottom-Up Load Demand Simulation">
+  <img src="config/assets/ramp.png" width="700" alt="RAMP for Bottom-Up Load Demand Simulation">
 </p>
 
 This is a **Streamlit-based** interface that makes the **bottom-up, appliance-level load demand modelling** capabilities of the RAMP framework accessible to a broader audience. RAMP generates realistic high-resolution electricity demand time series by simulating user behaviour, appliance operation, and stochastic variability at minute-scale resolution. Traditionally, this workflow requires detailed spreadsheets and Python scripting; here, the same pipeline is exposed through an interactive graphical interface.
@@ -66,6 +66,10 @@ Latitude selects one of the climatic zones (F1–F5), and a **cooling regime** r
 
 The methodology aggregates hourly profiles derived from surveys, measurement campaigns, and behavioural modelling — suitable for electrification planning, mini-grid simulations, and access planning under SDG7 frameworks.
 
+<p align="center">
+  <img src="config/assets/archetypes.png" width="700" alt="RAMP for Bottom-Up Load Demand Simulation">
+</p>
+
 This mode outputs:
 - a single **aggregated hourly profile**
 - **per-user category profiles** (households by tier, schools, hospitals)
@@ -124,8 +128,8 @@ http://localhost:8501
 📧 alessandro.onori@polimi.it  
 
 Technical Advisors  
-- Riccardo Mereu — Politecnico di Milano  
-- Emanuela Colombo — Politecnico di Milano
+- Riccardo Mereu - Politecnico di Milano  
+- Emanuela Colombo - Politecnico di Milano
 
 ---
 
