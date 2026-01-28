@@ -49,6 +49,26 @@ st.markdown(
 # -----------------------------------------------------------------------------
 st.markdown("---")
 st.markdown("### Location and Cooling regime")
+st.markdown(
+    """
+    **Latitude** influences the **daily and seasonal timing** of electricity use
+    (primarily lighting, cooking, and cooling) by modifying sunrise/sunset hours
+    across the year. In the archetype study, latitudes across Sub-Saharan Africa
+    were grouped into five representative bands, covering roughly **30°S to 20°N**,
+    corresponding to where the profiles are valid. Values outside this range may not
+    reflect realistic seasonal appliance behaviour and are therefore not supported.
+
+    **Cooling regime** indicates when cooling appliances are used throughout the year:
+    - **NC** - No cooling use
+    - **AY** - Cooling all year
+    - **OM** - Cooling October → March
+    - **AS** - Cooling April → September
+
+    These features allow household demand patterns to vary both **seasonally**
+    and **behaviourally**, consistent with the climatic and socio-economic diversity
+    observed across rural Sub-Saharan African communities.
+    """
+)
 
 col1, col2 = st.columns(2)
 lat = col1.number_input(
@@ -69,7 +89,38 @@ cooling_period = col2.selectbox(
 # -----------------------------------------------------------------------------
 # 2. Demand composition
 # -----------------------------------------------------------------------------
+st.markdown("---")
 st.markdown("### Demand composition")
+st.markdown(
+    """
+    **Household Wealth Tiers (1 → 5)**  
+    Household archetypes differ by **appliance ownership**, **usage intensity**, and
+    **time-of-use patterns**. Higher tiers reflect a broader appliance basket
+    (e.g. lighting, phone charging, radios, TVs, cooling fans, small ICT), more
+    diversified activities, and generally increased evening/night consumption.
+    These tiers were constructed from literature on rural electrification and
+    observed demand profiles in Sub-Saharan Africa.
+
+    Beyond households, two institutional demand categories are included:
+
+    **Health Facilities (5 archetypes)**  
+    Represent a spectrum from small rural dispensaries to sub-county hospitals.
+    As tier increases, loads become more **daytime-oriented** with higher medical
+    equipment and auxiliary service usage (e.g. lighting, refrigeration, ICT),
+    consistent with progressively larger operational capacity.
+    - Tier 1: Rural dispensary 
+    - Tier 2: Basic health center 
+    - Tier 3: Medium capacity 
+    - Tier 4: District-level 
+    - Tier 5: Sub-county hospital
+
+    **School (1 archetype)**  
+    Represents a rural primary school with characteristic **daytime loads** and
+    peaks around morning and early afternoon activity periods (teaching, ICT,
+    lighting, small appliances). No residential or evening loads are assumed.
+    """
+)
+
 
 col_hh = st.columns(5)
 h1 = col_hh[0].number_input("Households Tier 1", min_value=0.0, value=0.0, step=10.0)
@@ -86,13 +137,12 @@ hp3 = col_health[3].number_input("Hospitals Type 3", min_value=0.0, value=0.0, s
 hp4 = col_health[4].number_input("Hospitals Type 4", min_value=0.0, value=0.0, step=1.0)
 hp5 = col_health[5].number_input("Hospitals Type 5", min_value=0.0, value=0.0, step=1.0)
 
-st.markdown(
+st.caption(
     """
 - **Households**: numbers are **absolute counts**; archetype profiles are normalised per 100 households internally.  
 - **Hospitals and schools**: numbers are **absolute facilities** (1 = one facility).  
 
 The resulting load is a static one-year profile.  
-Any **scenario scaling** or **multi-year evolution** can be applied later in post-processing to the exported CSV files.
 """
 )
 
