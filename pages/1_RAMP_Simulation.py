@@ -51,23 +51,20 @@ st.markdown(
     """
 )
 
-col1, col2, _ = st.columns([1,1,4])
 
-with col1:
-    if st.button("Clear inputs folder", type="primary"):
-        try:
-            clear_directory(PM.inputs_dir)
-            st.success("Inputs folder cleared (all generated full RAMP inputs and archetype files removed).")
-        except Exception as e:
-            st.error(f"Could not clear inputs folder: {e}")
+if st.button("Clear inputs folder", type="primary"):
+    try:
+        clear_directory(PM.inputs_dir)
+        st.success("Inputs folder cleared (all generated full RAMP inputs and archetype files removed).")
+    except Exception as e:
+        st.error(f"Could not clear inputs folder: {e}")
 
-with col2:
-    if st.button("Clear outputs folder", type="primary"):
-        try:
-            clear_directory(PM.outputs_dir)
-            st.success("Outputs folder cleared (all generated profiles removed).")
-        except Exception as e:
-            st.error(f"Could not clear outputs folder: {e}")
+if st.button("Clear outputs folder", type="primary"):
+    try:
+        clear_directory(PM.outputs_dir)
+        st.success("Outputs folder cleared (all generated profiles removed).")
+    except Exception as e:
+        st.error(f"Could not clear outputs folder: {e}")
 
 st.markdown("---")
 st.subheader("1. Configure Seasonal & Weekly Structure")
