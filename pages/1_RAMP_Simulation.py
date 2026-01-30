@@ -19,6 +19,8 @@ from core.utils import (
     build_hourly_from_minute,
     save_hourly_aggregated,
     build_calendar_metadata_from_year_structure,
+    matrix_to_long_series,
+    save_dataframe_csv,
 )
 from core.ramp_core import (
     build_multi_archetypes_from_uploads,
@@ -673,9 +675,16 @@ else:
         st.error(f"Could not build hourly series: {e}")
         st.stop()
 
-    # Save hourly series
+    # Save hourly series (existing behavior)
     out_path = save_hourly_aggregated(hourly)
     st.caption(f"Hourly aggregated profile saved to: `{out_path}`")
+
+    # ALSO export hourly LONG (8760 rows) for download (optional)
+    hourly_long_df = matrix_to_long_series(
+        hourly, freq="H", year=2020, col_name="power_W", add_datetime_index=False
+    )
+    out_path_long = PM.outputs_dir / "profile_aggregated_hourly_long.csv"
+    save_dataframe_csv(hourly_long_df, out_path_long)
 
     # Compute stats for plot (kW)
     mean_hourly = hourly.mean(axis=0) / 1000.0
@@ -709,14 +718,14 @@ else:
         """
     )
 
-    # 1) Aggregated minute-resolution profile (365 × 1440)
-    agg_csv_path = PM.outputs_dir / "profile_aggregated.csv"
-    if agg_csv_path.exists():
-        with open(agg_csv_path, "rb") as f:
+    # 1b) Aggregated minute-resolution profile (LONG: 525600 rows)
+    agg_long_path = PM.outputs_dir / "profile_aggregated_minute_long.csv"
+    if agg_long_path.exists():
+        with open(agg_long_path, "rb") as f:
             st.download_button(
-                "Download aggregated minute profile (365×1440)",
+                "Download aggregated minute profile",
                 data=f.read(),
-                file_name="profile_aggregated.csv",
+                file_name="profile_aggregated_minute_long.csv",
                 mime="text/csv",
             )
 
@@ -734,13 +743,13 @@ else:
             mime="application/zip",
         )
 
-    # 3) Aggregated hourly profile (8760 hours)
-    if out_path.exists():
-        with open(out_path, "rb") as f:
+    # 3b) Aggregated hourly profile (LONG: 8760 rows)
+    if out_path_long.exists():
+        with open(out_path_long, "rb") as f:
             st.download_button(
-                "Download aggregated hourly profile (8760 hours)",
+                "Download aggregated hourly profile",
                 data=f.read(),
-                file_name="profile_aggregated_hourly.csv",
+                file_name="profile_aggregated_hourly_long.csv",
                 mime="text/csv",
             )
 

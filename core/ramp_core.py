@@ -13,6 +13,7 @@ from pathlib import Path
 
 from ramp.core.core import UseCase  # RAMP
 
+from core.utils import matrix_to_long_series
 from config.path_manager import PM
 from core.utils import (
     build_full_input_for_archetype,
@@ -174,21 +175,50 @@ def run_single_archetype(excel_path: Path, num_days: int) -> Dict:
 
     # Save results
     PM.outputs_dir.mkdir(parents=True, exist_ok=True)
-    for cat, year_mat in per_cat_year.items():
-        df = pd.DataFrame(year_mat)
-        save_dataframe_csv(df, PM.outputs_dir / f"profile_{_safe_name(cat)}.csv")
 
-    agg_df = pd.DataFrame(aggregated)
-    agg_path = save_dataframe_csv(agg_df, PM.outputs_dir / "profile_aggregated.csv")
+    EXPORT_MINUTE_LONG = True  # export copies for download
+    per_user_csv: Dict[str, str] = {}
+    per_user_csv_long: Dict[str, str] = {}
+
+    # --- per-category
+    for cat, year_mat in per_cat_year.items():
+        # 1) Always save WIDE (365 x 1440) for the app
+        wide_path = PM.outputs_dir / f"profile_{_safe_name(cat)}.csv"
+        save_dataframe_csv(pd.DataFrame(year_mat), wide_path)
+        per_user_csv[cat] = str(wide_path.resolve())
+
+        # 2) Optionally save LONG (525600 x 2) for export
+        if EXPORT_MINUTE_LONG:
+            df_long = matrix_to_long_series(
+                year_mat, freq="T", year=2020, col_name="power_W", add_datetime_index=False
+            )
+            long_path = PM.outputs_dir / f"profile_{_safe_name(cat)}_minute_long.csv"
+            save_dataframe_csv(df_long, long_path)
+            per_user_csv_long[cat] = str(long_path.resolve())
+
+    # --- aggregated (365 x 1440)
+    agg_wide_path = PM.outputs_dir / "profile_aggregated.csv"
+    save_dataframe_csv(pd.DataFrame(aggregated), agg_wide_path)
+
+    agg_long_path = None
+    if EXPORT_MINUTE_LONG:
+        agg_long = matrix_to_long_series(
+            aggregated, freq="T", year=2020, col_name="power_W", add_datetime_index=False
+        )
+        agg_long_path = PM.outputs_dir / "profile_aggregated_minute_long.csv"
+        save_dataframe_csv(agg_long, agg_long_path)
 
     return {
         "mode": "single",
-        "num_days": int(aggregated.shape[0]),  # 365
-        "minutes": int(aggregated.shape[1]),   # 1440
+        "num_days": 365,
+        "minutes": 1440,
         "categories": categories,
-        "aggregated_csv": str(agg_path),
-        "per_user_csv": {cat: str((PM.outputs_dir / f"profile_{_safe_name(cat)}.csv").resolve())
-                         for cat in categories},
+        # Keep this pointing to WIDE so app logic remains consistent
+        "aggregated_csv": str(agg_wide_path.resolve()),
+        "per_user_csv": per_user_csv,
+        # Optional extra pointers (nice-to-have)
+        "aggregated_csv_long": str(agg_long_path.resolve()) if agg_long_path else None,
+        "per_user_csv_long": per_user_csv_long,
     }
 
 
@@ -319,23 +349,52 @@ def run_multi_archetype() -> Dict:
 
     # Stack & save
     PM.outputs_dir.mkdir(parents=True, exist_ok=True)
-    per_user_csv: Dict[str, str] = {}
-    for cat in global_categories:
-        mat = np.vstack(year_by_cat[cat])
-        df = pd.DataFrame(mat)
-        path = save_dataframe_csv(df, PM.outputs_dir / f"profile_{_safe_name(cat)}.csv")
-        per_user_csv[cat] = str(path)
 
-    agg_mat = np.vstack(year_agg)
-    agg_df = pd.DataFrame(agg_mat)
-    agg_path = save_dataframe_csv(agg_df, PM.outputs_dir / "profile_aggregated.csv")
+    EXPORT_MINUTE_LONG = True
+
+    per_user_csv: Dict[str, str] = {}
+    per_user_csv_long: Dict[str, str] = {}
+
+    # --- per-category
+    for cat in global_categories:
+        mat = np.vstack(year_by_cat[cat])  # (365,1440)
+
+        # 1) Always save WIDE
+        wide_path = PM.outputs_dir / f"profile_{_safe_name(cat)}.csv"
+        save_dataframe_csv(pd.DataFrame(mat), wide_path)
+        per_user_csv[cat] = str(wide_path.resolve())
+
+        # 2) Optionally save LONG
+        if EXPORT_MINUTE_LONG:
+            df_long = matrix_to_long_series(
+                mat, freq="T", year=2020, col_name="power_W", add_datetime_index=False
+            )
+            long_path = PM.outputs_dir / f"profile_{_safe_name(cat)}_minute_long.csv"
+            save_dataframe_csv(df_long, long_path)
+            per_user_csv_long[cat] = str(long_path.resolve())
+
+    # --- aggregated
+    agg_mat = np.vstack(year_agg)  # (365,1440)
+
+    agg_wide_path = PM.outputs_dir / "profile_aggregated.csv"
+    save_dataframe_csv(pd.DataFrame(agg_mat), agg_wide_path)
+
+    agg_long_path = None
+    if EXPORT_MINUTE_LONG:
+        agg_long = matrix_to_long_series(
+            agg_mat, freq="T", year=2020, col_name="power_W", add_datetime_index=False
+        )
+        agg_long_path = PM.outputs_dir / "profile_aggregated_minute_long.csv"
+        save_dataframe_csv(agg_long, agg_long_path)
 
     return {
         "mode": "multi",
-        "days": int(agg_mat.shape[0]),
-        "minutes": int(agg_mat.shape[1]),
+        "days": 365,
+        "minutes": 1440,
         "categories": global_categories,
-        "aggregated_csv": str(agg_path),
+        "aggregated_csv": str(agg_wide_path.resolve()),
         "per_user_csv": per_user_csv,
+        "aggregated_csv_long": str(agg_long_path.resolve()) if agg_long_path else None,
+        "per_user_csv_long": per_user_csv_long,
     }
 

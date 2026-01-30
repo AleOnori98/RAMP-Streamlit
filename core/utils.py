@@ -136,6 +136,40 @@ def hhmm_to_minutes(val, is_end: bool = False) -> int:
 
     return 0
 
+def matrix_to_long_series(
+    mat: np.ndarray,
+    freq: str,
+    year: int = 2020,
+    col_name: str = "power_W",
+    add_datetime_index: bool = True,
+) -> pd.DataFrame:
+    """
+    Convert a (days, steps_per_day) matrix into a long dataframe with length days*steps_per_day.
+
+    freq:
+      - "H"  -> expects steps_per_day = 24
+      - "T"  -> expects steps_per_day = 1440 (minute)
+      - "15T" etc also possible (then steps_per_day must match)
+
+    Output:
+      - if add_datetime_index=True: columns: ["datetime", col_name]
+      - else: columns: [col_name] only (single column)
+    """
+    mat = np.asarray(mat)
+    if mat.ndim != 2:
+        raise ValueError(f"Expected 2D matrix (days, steps_per_day), got shape={mat.shape}")
+
+    days, steps_per_day = mat.shape
+    values = mat.reshape(days * steps_per_day, order="C")  # day0 all steps, then day1, ...
+
+    if not add_datetime_index:
+        return pd.DataFrame({col_name: values})
+
+    # Build a proper timeline for the chosen year
+    start = pd.Timestamp(f"{year}-01-01 00:00:00")
+    dt_index = pd.date_range(start=start, periods=len(values), freq=freq)
+
+    return pd.DataFrame({"datetime": dt_index, col_name: values})
 
 # ---------------------------------------------------------------------
 # Archetype presets for cyclic appliances
