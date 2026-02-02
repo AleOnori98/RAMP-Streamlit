@@ -139,7 +139,7 @@ def hhmm_to_minutes(val, is_end: bool = False) -> int:
 def matrix_to_long_series(
     mat: np.ndarray,
     freq: str,
-    year: int = 2020,
+    year: int = 2019, # non-leap year
     col_name: str = "power_W",
     add_datetime_index: bool = True,
 ) -> pd.DataFrame:
@@ -496,7 +496,7 @@ def build_calendar_metadata_from_year_structure(n_days: int) -> Tuple[pd.Datetim
     week_classes = cfg.get("week_classes", [])
     m2s = month_to_season_map(seasons)
 
-    dates = pd.date_range("2020-01-01", periods=n_days, freq="D")
+    dates = pd.date_range("2019-01-01", periods=n_days, freq="D") # based on non-leap year
     seasons_for_days = [m2s.get(d.month) for d in dates]
 
     if use_week and week_classes:

@@ -190,7 +190,7 @@ def run_single_archetype(excel_path: Path, num_days: int) -> Dict:
         # 2) Optionally save LONG (525600 x 2) for export
         if EXPORT_MINUTE_LONG:
             df_long = matrix_to_long_series(
-                year_mat, freq="T", year=2020, col_name="power_W", add_datetime_index=False
+                year_mat, freq="T", year=2019, col_name="power_W", add_datetime_index=False
             )
             long_path = PM.outputs_dir / f"profile_{_safe_name(cat)}_minute_long.csv"
             save_dataframe_csv(df_long, long_path)
@@ -203,7 +203,7 @@ def run_single_archetype(excel_path: Path, num_days: int) -> Dict:
     agg_long_path = None
     if EXPORT_MINUTE_LONG:
         agg_long = matrix_to_long_series(
-            aggregated, freq="T", year=2020, col_name="power_W", add_datetime_index=False
+            aggregated, freq="T", year=2019, col_name="power_W", add_datetime_index=False
         )
         agg_long_path = PM.outputs_dir / "profile_aggregated_minute_long.csv"
         save_dataframe_csv(agg_long, agg_long_path)
@@ -233,7 +233,7 @@ def run_multi_archetype() -> Dict:
 
     Steps:
       1) For each archetype & user category, generate pools of daily profiles (num_days x 1440)
-      2) Build a 365-day calendar (2020) using season-by-month + optional week pattern
+      2) Build a 365-day calendar (2019) using season-by-month + optional week pattern
       3) Sample 1 day from the relevant archetype pool for each day, per category
       4) Save per-user (365 x 1440) and aggregated CSVs
     """
@@ -309,8 +309,8 @@ def run_multi_archetype() -> Dict:
 
     global_categories = sorted(global_categories)
 
-    # --- Build 365-day calendar and assemble
-    dates = pd.date_range("2020-01-01", "2020-12-31", freq="D")
+    # --- Build 365-day calendar and assemble (based on 2019 for non-leap year)
+    dates = pd.date_range("2019-01-01", periods=365, freq="D")
     rng = default_rng()
 
     def _arch_id_from_pair(season_name: str, week_class_name: Optional[str]) -> str:
@@ -367,7 +367,7 @@ def run_multi_archetype() -> Dict:
         # 2) Optionally save LONG
         if EXPORT_MINUTE_LONG:
             df_long = matrix_to_long_series(
-                mat, freq="T", year=2020, col_name="power_W", add_datetime_index=False
+                mat, freq="T", year=2019, col_name="power_W", add_datetime_index=False
             )
             long_path = PM.outputs_dir / f"profile_{_safe_name(cat)}_minute_long.csv"
             save_dataframe_csv(df_long, long_path)
@@ -382,7 +382,7 @@ def run_multi_archetype() -> Dict:
     agg_long_path = None
     if EXPORT_MINUTE_LONG:
         agg_long = matrix_to_long_series(
-            agg_mat, freq="T", year=2020, col_name="power_W", add_datetime_index=False
+            agg_mat, freq="T", year=2019, col_name="power_W", add_datetime_index=False
         )
         agg_long_path = PM.outputs_dir / "profile_aggregated_minute_long.csv"
         save_dataframe_csv(agg_long, agg_long_path)
